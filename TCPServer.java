@@ -1,76 +1,106 @@
 import java.io.*; 
-import java.net.*; 
+import java.net.*;
+import java.util.ArrayList;
 
 public class TCPServer {
-	public static double calculate(String input) {
-		String[] input_part = input.split("\\s+"); //This allows for input format: "a + b"
-		double result = 0;
-		
-		//check if input string has enough 2 operands and operator 
-		if (input_part.length !=3) {
-			return 1;
-		} // end if 
-		
-		//convert string to double value for calculation
-		double operand_1 = Double.parseDouble(input_part[0]);
-		double operand_2 = Double.parseDouble(input_part[2]);
-		
-		//switch condition
-		switch (input_part[1]) {
-		case "+":
-			result = operand_1 + operand_2;
-			break;
-			
-		case "-":
-			result = operand_1 - operand_2;
-			break;
-			
-		case "*":
-			result = operand_1 * operand_2;
-			break;
-			
-		case "/":
-			if (operand_2 == 0) {
-				return 1;
-			} else {
-			result = operand_1 / operand_2;
-			break;
-			} // end if 
-		} // end switch
-		
-		return result;
-		
-	} // end calculate()
-	
+	private static ArrayList<TCPThread> connections = new ArrayList<TCPThread>();
 	public static void main(String[] args) throws IOException {
-		 String client_Sentence; 
+		ServerSocket serverSocket = null;
+		Socket socket = null;
+		int numCon = 0;
 
-	     ServerSocket welcomeSocket = new ServerSocket(7777); 
-	 	 System.out.println("Server is running");
-	   while(true) {
-	           Socket connectionSocket = welcomeSocket.accept();
-	           System.out.println("Client connection accepted");
-	           // create input stream (read from client)
-	           BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream())); 
-
-	           // create output stream (send to client) 
-	           DataOutputStream  outToClient = new DataOutputStream(connectionSocket.getOutputStream()); 
-
-	           //get input from client
-	           client_Sentence = inFromClient.readLine(); 
-
-	           // send input string to calculate()
-	           double result = calculate(client_Sentence);
-	           
-	           //return a string in format: "a + b = c"
-	           String result_Sentence = client_Sentence + " = " + result;
-
-	           //send the return string to client
-	           outToClient.writeBytes(result_Sentence); 
-connectionSocket.close();
-	   } //end true 
+		try {
+			serverSocket = new ServerSocket(4321);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		while(true) {
+			try {
+				socket = serverSocket.accept();
+				connections.add(new TCPThread(socket));
+				connections.get(numCon).start();
+				numCon++;
+			} catch (IOException e) {
+				System.out.println("I/O error: " + e);
+			}
+			new TCPThread(socket).start();
+		}
 	} // end main()
-	
-	
-
 }
+
+class TCPThread extends Thread {
+		protected Socket socket;
+
+		public TCPThread(Socket clientSocket) {
+			this.socket = clientSocket;
+		}
+
+        public static String calculate(String input) {
+            String[] input_part = input.split("\\s+"); //This allows for input format: "a + b"
+            double result = 0;
+            
+            //check if input string has enough 2 operands and operator 
+            if (input_part.length !=3) {
+                return "null";
+            } // end if 
+            
+            //convert string to double value for calculation
+            double operand_1 = Double.parseDouble(input_part[0]);
+            double operand_2 = Double.parseDouble(input_part[2]);
+            
+            //switch condition
+            switch (input_part[1]) {
+            case "+":
+                result = operand_1 + operand_2;
+                break;
+                
+            case "-":
+                result = operand_1 - operand_2;
+                break;
+                
+            case "*":
+                result = operand_1 * operand_2;
+                break;
+                
+            case "/":
+                if (operand_2 == 0) {
+                    return "null";
+                } else {
+                result = operand_1 / operand_2;
+                break;
+                } // end if 
+            } // end switch
+            
+            return Double.toString(result);
+            
+        } // end calculate()
+
+		public void run() {
+			InputStream inputRaw = null;
+			BufferedReader inputBuff = null;
+			DataOutputStream out = null;
+			try {
+				inputRaw = socket.getInputStream();
+				inputBuff = new BufferedReader(new InputStreamReader(inputRaw));
+				out = new DataOutputStream(socket.getOutputStream());
+			} catch (IOException e) {
+				return;
+			}
+			String lineIn;
+			while(true) {
+				try {
+					lineIn = inputBuff.readLine();
+					if ((lineIn == null) || lineIn.equals("STOP")) {
+						socket.close();
+						return;
+					} else {
+						out.writeBytes(calculate(lineIn) + '\n');
+						out.flush();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+					return;
+				}
+			}
+		}
+	}

@@ -4,34 +4,43 @@ import java.net.*;
 public class TCPClient {
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
-		
-			String sentence; 
-	        String modified_Sentence; 
-	
-	        BufferedReader user_input = new BufferedReader(new InputStreamReader(System.in)); 
-	
-	        //create new socket
-	        Socket clientSocket = new Socket("127.0.0.1", 7777); 
-	
-	        //create output stream (send to server)
-	        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream()); 
-	        
-	        //create input stream (receive from server)
-	        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); 
-	
-	        //get argument from cmd line
-	        sentence = args[0];  
-	        
-	        // send to server
-	        outToServer.writeBytes(sentence + '\n'); 
-	
-	        // read from server 
-	        modified_Sentence = inFromServer.readLine(); 
-	
-	        System.out.println("FROM SERVER: " + modified_Sentence); 
-	
-	        clientSocket.close(); 
-		
-	}
+		String lineIn = null;
+		String response = null;
+		BufferedReader inputBuff = null;
+		BufferedReader inputStream = null;
+		PrintWriter outStream = null;
 
+		//create new socket
+	    Socket clientSocket = new Socket("127.0.0.1", 4321);
+		try {
+        	inputBuff = new BufferedReader(new InputStreamReader(System.in));
+        	inputStream = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        	outStream = new PrintWriter(clientSocket.getOutputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("IO Error: " + e);
+		}
+	    //get argument from cmd line
+	    System.out.println("Enter equation (Type STOP to end):");
+	        
+		try	{
+			lineIn = inputBuff.readLine(); 
+			while(lineIn.compareTo("STOP")!=0){
+					outStream.println(lineIn);
+					outStream.flush();
+					response=inputStream.readLine();
+					System.out.println("Server Response : " + response);
+					lineIn=inputBuff.readLine();
+				}
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("Socket Read Error: " + e);
+		} finally {
+			inputStream.close();
+			outStream.close();
+			inputBuff.close();
+			clientSocket.close();
+			System.out.println("Connection closed");
+		}
+	}
 }
