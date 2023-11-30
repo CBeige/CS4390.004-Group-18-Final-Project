@@ -10,11 +10,14 @@ JC = javac
 # line, just remove them (these are also just added for readability).
 CLASSES = \
         TCPServer.java \
-        TCPClient.java 
+        TCPClient.java
 
 default: classes
 
 classes: $(CLASSES:.java=.class)
+
+run: classes
+    $(JVM) $(MAIN)
 
 clean:
         $(RM) *.class
