@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.time.format.*;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class TCPServer {
@@ -38,6 +39,8 @@ public class TCPServer {
 // parsing requests, logging, calculation, and response to client
 class TCPThread extends Thread {
 		protected Socket socket;
+		LocalDateTime connStart = null;
+		LocalDateTime connClose = null;
 
 		public TCPThread(Socket clientSocket) {
 			this.socket = clientSocket;
@@ -56,11 +59,16 @@ class TCPThread extends Thread {
 			String datetime = dtf();
 			String entry = msg;
 			String request_type = null;
+			Duration connectionDuration = null;
 
 			if (msg == "STOP") {
 				request_type = "User Connection Closed";
+				connClose = LocalDateTime.now();
+				connectionDuration = Duration.between(connStart, connClose);
+				msg = null;
 			} else if (!Character.isDigit(msg.charAt(0))) {
 				request_type = "New User Connection Opened";
+				connStart = LocalDateTime.now();
 			} else {
 				request_type = "Math Calculation";
 			}
@@ -75,6 +83,11 @@ class TCPThread extends Thread {
 				fout.write(addr + '\n');
 				fout.write(datetime + '\n');
 				fout.write(request_type + '\n');
+				
+				if (connectionDuration != null) {
+					fout.write(String.format("%d:%02d:%02d", connectionDuration.getSeconds() / 3600,
+					 (connectionDuration.getSeconds() % 3600) / 60, (connectionDuration.getSeconds() % 60)) + '\n');
+				}
 				fout.write(entry + '\n' + '\n');
 				fout.close();
 			} catch (IOException e){
