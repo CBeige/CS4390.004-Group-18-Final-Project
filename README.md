@@ -82,3 +82,15 @@ The application is complete. It can differentiate requests from different origin
 - Nghiem
   - This project mainly serves as a learning opportunity for me to understand how to do network programming in Java. It teaches me how to establish a TCP server and client, how two hosts communicate with each other, and what lines of code are necessary for the 2 hosts to read and send information to others.
 
+### J. The output screenshots of the application
+#### Execution Screenshots: 
+
+![image](https://github.com/CBeige/CS4390.004-Group-18-Final-Project/assets/47686344/8823db1d-03fd-4c78-bd77-93b6316c5742)
+
+![image](https://github.com/CBeige/CS4390.004-Group-18-Final-Project/assets/47686344/cb7b4647-401d-4544-a50c-135ecc794098)
+
+![image](https://github.com/CBeige/CS4390.004-Group-18-Final-Project/assets/47686344/614fb49f-01b4-4c10-97c3-ff406c51b441)
+
+#### Output and Log for final iteration (complete version):
+![image](https://github.com/CBeige/CS4390.004-Group-18-Final-Project/assets/47686344/02d2e5bb-ba02-43f4-8301-51ef98a6092e)
+
